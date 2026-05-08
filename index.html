@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pão de Mel" />
+  <meta name="theme-color" content="#733425" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Padaria Pão de Mel</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/print.css" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- =============================================
+     TELA DE LOGIN
+     ============================================= -->
+<div id="login-screen">
+  <div class="login-logo">🍞</div>
+  <div class="login-title">
+    <h1>Pão de Mel</h1>
+    <p>Sistema de Pedidos • 25 Anos</p>
+  </div>
+  <div class="profiles-grid">
+    <button class="profile-btn admin" onclick="Auth.login('lucas')">
+      <div class="p-avatar">L</div>
+      <div class="p-name">Lucas</div>
+      <div class="p-role">Administrador</div>
+    </button>
+    <button class="profile-btn viewer" onclick="Auth.login('marcos')">
+      <div class="p-avatar">M</div>
+      <div class="p-name">Marcos</div>
+      <div class="p-role">Visualizar</div>
+    </button>
+    <button class="profile-btn viewer" onclick="Auth.login('tania')">
+      <div class="p-avatar">T</div>
+      <div class="p-name">Tania</div>
+      <div class="p-role">Visualizar</div>
+    </button>
+    <button class="profile-btn viewer" onclick="Auth.login('thais')">
+      <div class="p-avatar">T</div>
+      <div class="p-name">Thais</div>
+      <div class="p-role">Visualizar</div>
+    </button>
+  </div>
+</div>
+
+<!-- =============================================
+     APP PRINCIPAL
+     ============================================= -->
+<div id="app" style="display:none;">
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <div class="top-bar-logo">🍞</div>
+      <div class="top-bar-title">
+        <h2>Pão de Mel</h2>
+        <span id="current-user-label">Padaria</span>
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <button class="icon-btn" onclick="App.goTo('alertas')" title="Alertas">
+        🔔
+        <span class="badge-dot" id="alert-dot" style="display:none;"></span>
+      </button>
+      <button class="icon-btn" onclick="Auth.logout()" title="Sair">🚪</button>
+    </div>
+  </header>
+
+  <!-- ── PÁGINA: DASHBOARD ── -->
+  <main class="page active" id="page-dash">
+    <div id="view-only-dash" class="view-only-banner" style="display:none;">
+      👁️ Modo visualização — apenas Lucas pode criar ou editar pedidos
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card accent">
+        <div class="stat-val" id="stat-hoje">0</div>
+        <div class="stat-label">Pedidos Hoje</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-fat">R$0</div>
+        <div class="stat-label">Faturamento Hoje</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-producao">0</div>
+        <div class="stat-label">Em Produção</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-entrega">0</div>
+        <div class="stat-label">Para Entregar</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📋 Pedidos de Hoje</div>
+        <span id="dash-date" class="text-muted text-sm"></span>
+      </div>
+      <div id="today-list" class="today-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📅 Próximas Entregas</div>
+      </div>
+      <div id="upcoming-list" class="today-list"></div>
+    </div>
+  </main>
+
+  <!-- ── PÁGINA: PEDIDOS ── -->
+  <main class="page" id="page-pedidos">
+    <div id="view-only-ped" class="view-only-banner" style="display:none;">👁️ Modo visualização</div>
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" id="search-pedidos" placeholder="Buscar cliente ou pedido..." oninput="Pedidos.render()" />
+    </div>
+    <div class="filter-tabs" id="filter-tabs">
+      <button class="filter-tab active" onclick="Pedidos.setFilter('todos', this)">Todos</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('0', this)">Aguardando</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('1', this)">Compra</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('2', this)">Produção</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('3', this)">Separação</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('4', this)">Assando</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('5', this)">Pronto</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('6', this)">Saiu</button>
+      <button class="filter-tab" onclick="Pedidos.setFilter('7', this)">Entregue</button>
+    </div>
+    <div id="pedidos-list"></div>
+  </main>
+
+  <!-- ── PÁGINA: CLIENTES ── -->
+  <main class="page" id="page-clientes">
+    <div id="view-only-cli" class="view-only-banner" style="display:none;">👁️ Modo visualização</div>
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" id="search-clientes" placeholder="Buscar cliente..." oninput="Clientes.render()" />
+    </div>
+    <div id="clientes-list"></div>
+  </main>
+
+  <!-- ── PÁGINA: RELATÓRIOS ── -->
+  <main class="page" id="page-relatorios">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px;">📅 Período</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">De</label>
+          <input type="date" class="form-input" id="rel-from" onchange="Relatorios.render()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Até</label>
+          <input type="date" class="form-input" id="rel-to" onchange="Relatorios.render()" />
+        </div>
+      </div>
+    </div>
+    <div id="rel-stats"></div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">🏆 Produtos Mais Pedidos</div></div>
+      <div id="rel-products"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">🚚 Por Entregador</div></div>
+      <div id="rel-entregador"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📊 Por Tipo de Pedido</div></div>
+      <div id="rel-tipo"></div>
+    </div>
+  </main>
+
+  <!-- ── PÁGINA: ALERTAS ── -->
+  <main class="page" id="page-alertas">
+    <button class="btn btn-accent btn-block" id="btn-new-alert" onclick="Alertas.openModal()">+ Novo Lembrete</button>
+    <div id="alertas-list"></div>
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="dash" onclick="App.goTo('dash', this)">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Início</span>
+    </button>
+    <button class="nav-item" data-page="pedidos" onclick="App.goTo('pedidos', this)">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Pedidos</span>
+      <span class="nav-badge" id="nav-badge" style="display:none;">0</span>
+    </button>
+    <button class="nav-item" data-page="clientes" onclick="App.goTo('clientes', this)">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Clientes</span>
+    </button>
+    <button class="nav-item" data-page="relatorios" onclick="App.goTo('relatorios', this)">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Relatório</span>
+    </button>
+    <button class="nav-item" data-page="alertas" onclick="App.goTo('alertas', this)">
+      <span class="nav-icon">🔔</span>
+      <span class="nav-label">Alertas</span>
+    </button>
+  </nav>
+
+  <!-- FAB - Novo Pedido -->
+  <button class="fab" id="fab" onclick="Pedidos.openNew()" title="Novo Pedido">＋</button>
+
+</div><!-- /app -->
+
+<!-- =============================================
+     MODAIS
+     ============================================= -->
+
+<!-- Modal: Novo/Editar Pedido -->
+<div class="modal-overlay" id="modal-order">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-order-title">🧾 Novo Pedido</div>
+
+    <!-- CLIENTE -->
+    <div class="modal-section">
+      <div class="form-group">
+        <label class="form-label">Cliente *</label>
+        <input class="form-input" id="o-cliente" placeholder="Nome do cliente" list="clientes-datalist" />
+        <datalist id="clientes-datalist"></datalist>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefone</label>
+        <input class="form-input" id="o-telefone" placeholder="(xx) xxxxx-xxxx" type="tel" />
+      </div>
+    </div>
+
+    <!-- TIPO -->
+    <div class="modal-section">
+      <div class="form-group">
+        <label class="form-label">Tipo do Pedido *</label>
+        <div class="toggle-group" id="tipo-group">
+          <button class="toggle-btn active" data-tipo="festa" onclick="Pedidos.setTipo('festa', this)">🎉 Festa/Kit</button>
+          <button class="toggle-btn" data-tipo="delivery" onclick="Pedidos.setTipo('delivery', this)">🚚 Delivery</button>
+          <button class="toggle-btn" data-tipo="retirada" onclick="Pedidos.setTipo('retirada', this)">🏪 Retirada</button>
+          <button class="toggle-btn" data-tipo="fidelizado" onclick="Pedidos.setTipo('fidelizado', this)">⭐ Fidelizado</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATAS -->
+    <div class="modal-section">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">📦 Data Produção</label>
+          <input class="form-input" id="o-dt-prod" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏰ Hora Produção</label>
+          <input class="form-input" id="o-hr-prod" type="time" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">🚚 Data Entrega</label>
+          <input class="form-input" id="o-dt-entrega" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏰ Hora Entrega</label>
+          <input class="form-input" id="o-hr-entrega" type="time" />
+        </div>
+      </div>
+    </div>
+
+    <!-- RESPONSÁVEIS -->
+    <div class="modal-section">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">👨‍🍳 Resp. Produção</label>
+          <input class="form-input" id="o-resp-prod" placeholder="Nome" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">🚚 Entregador</label>
+          <input class="form-input" id="o-entregador" placeholder="Nome ou —" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ITENS -->
+    <div class="modal-section">
+      <label class="form-label">🛍️ Itens do Pedido</label>
+      <div class="item-header">
+        <span>Item</span><span>Qtd</span><span>Unid.</span><span>Vl.Unit</span><span></span>
+      </div>
+      <div id="items-table"></div>
+      <button class="btn btn-outline btn-sm" onclick="Pedidos.addItemRow()" style="margin-top:8px;">+ Adicionar Item</button>
+      <div class="total-row-display">
+        <span class="total-label">Total dos Itens</span>
+        <span class="total-val" id="order-total">R$ 0,00</span>
+      </div>
+    </div>
+
+    <!-- DESCARTÁVEIS -->
+    <div class="modal-section">
+      <div class="desc-toggle" onclick="Pedidos.toggleDescartaveis()">
+        <span>🥤 Vai ter descartáveis?</span>
+        <span id="desc-arrow">▸</span>
+      </div>
+      <div id="desc-section" style="display:none;">
+        <div class="desc-grid" id="desc-grid"></div>
+      </div>
+    </div>
+
+    <!-- FLAGS -->
+    <div class="modal-section">
+      <label class="form-label">Informações Extras</label>
+      <label class="check-group">
+        <input type="checkbox" id="o-nota" />
+        <span>📄 Precisa de nota fiscal</span>
+      </label>
+      <label class="check-group">
+        <input type="checkbox" id="o-compra" onchange="Pedidos.toggleCompraDetail()" />
+        <span>🛒 Precisa comprar insumo</span>
+      </label>
+      <div id="compra-detail-group" style="display:none;">
+        <input class="form-input" id="o-compra-detail" placeholder="O que precisa comprar?" />
+      </div>
+    </div>
+
+    <!-- OBS -->
+    <div class="modal-section">
+      <div class="form-group">
+        <label class="form-label">Observações</label>
+        <textarea class="form-textarea" id="o-obs" placeholder="Detalhes, sabores, personalizações..."></textarea>
+      </div>
+    </div>
+
+    <!-- AÇÕES -->
+    <div class="btn-group">
+      <button class="btn btn-outline" style="flex:1;" onclick="App.closeModal('modal-order')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="Pedidos.save()">💾 Salvar Pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalhe do Pedido -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<!-- Modal: Novo/Editar Cliente -->
+<div class="modal-overlay" id="modal-client">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-client-title">👤 Novo Cliente</div>
+    <div class="modal-section">
+      <div class="form-group">
+        <label class="form-label">Nome *</label>
+        <input class="form-input" id="c-nome" placeholder="Nome completo" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefone</label>
+        <input class="form-input" id="c-tel" placeholder="(xx) xxxxx-xxxx" type="tel" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="c-email" placeholder="email@exemplo.com" type="email" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <div class="toggle-group" id="ctipo-group">
+          <button class="toggle-btn active" data-ctipo="avulso" onclick="Clientes.setTipo('avulso', this)">Avulso</button>
+          <button class="toggle-btn" data-ctipo="fidelizado" onclick="Clientes.setTipo('fidelizado', this)">⭐ Fidelizado</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline" style="flex:1;" onclick="App.closeModal('modal-client')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="Clientes.save()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalhe do Cliente -->
+<div class="modal-overlay" id="modal-client-detail">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="client-detail-content"></div>
+  </div>
+</div>
+
+<!-- Modal: Novo Alerta -->
+<div class="modal-overlay" id="modal-alert">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔔 Novo Lembrete</div>
+    <div class="modal-section">
+      <div class="form-group">
+        <label class="form-label">Título *</label>
+        <input class="form-input" id="al-titulo" placeholder="Ex: Preparar encomenda da Maria" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input class="form-input" id="al-data" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hora</label>
+          <input class="form-input" id="al-hora" type="time" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <div class="toggle-group" id="altipo-group">
+          <button class="toggle-btn active" data-altipo="lembrete" onclick="Alertas.setTipo('lembrete', this)">📌 Lembrete</button>
+          <button class="toggle-btn" data-altipo="producao" onclick="Alertas.setTipo('producao', this)">👨‍🍳 Produção</button>
+          <button class="toggle-btn" data-altipo="entrega" onclick="Alertas.setTipo('entrega', this)">🚚 Entrega</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-outline" style="flex:1;" onclick="App.closeModal('modal-alert')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="Alertas.save()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Área de impressão -->
+<div id="print-area" style="display:none;"></div>
+
+<!-- =============================================
+     SCRIPTS — ordem importa!
+     ============================================= -->
+<script src="js/storage.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/pedidos.js"></script>
+<script src="js/clientes.js"></script>
+<script src="js/relatorios.js"></script>
+<script src="js/alertas.js"></script>
+<script src="js/print.js"></script>
+
+</body>
+</html>
