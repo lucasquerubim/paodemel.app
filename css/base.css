@@ -285,6 +285,7 @@ html, body {
 
 /* ── Login ── */
 .login-logo {
+  overflow: hidden;
   width: 140px;
   height: 140px;
   border-radius: 50%;
