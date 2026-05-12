@@ -5,38 +5,26 @@
 
 const Clientes = (() => {
 
-  let _editingId = null;
+  let _editingId   = null;
   let _currentTipo = 'avulso';
 
   // ── Listar ─────────────────────────────────────────────────
-
   function render() {
     const search = (document.getElementById('search-clientes')?.value || '').toLowerCase();
     const clientes = Storage.getClientes()
       .filter(c => !search || c.nome.toLowerCase().includes(search));
 
     const el = document.getElementById('clientes-list');
-    const isAdmin = Auth.isAdmin();
 
-    let html = '';
-
-    if (isAdmin) {
-      html += `<button class="btn btn-accent btn-block" onclick="Clientes.openNew()">+ Novo Cliente</button>`;
-    }
+    let html = `<button class="btn btn-accent btn-block" onclick="Clientes.openNew()">+ Novo Cliente</button>`;
 
     if (!clientes.length) {
-      el.innerHTML = html + `
-        <div class="empty-state">
-          <div class="empty-icon">👥</div>
-          <p>Nenhum cliente cadastrado</p>
-        </div>`;
+      el.innerHTML = html + `<div class="empty-state"><div class="empty-icon">👥</div><p>Nenhum cliente cadastrado</p></div>`;
       return;
     }
 
     html += clientes.map(c => {
-      const pedidos    = Storage.getPedidos().filter(p =>
-        p.cliente.toLowerCase() === c.nome.toLowerCase()
-      );
+      const pedidos    = Storage.getPedidos().filter(p => p.cliente.toLowerCase() === c.nome.toLowerCase());
       const totalGasto = pedidos.reduce((s, p) => s + (p.total || 0), 0);
 
       return `
@@ -60,7 +48,6 @@ const Clientes = (() => {
   }
 
   // ── Detalhe ────────────────────────────────────────────────
-
   function openDetail(id) {
     const c = Storage.getClientes().find(x => x.id === id);
     if (!c) return;
@@ -69,8 +56,7 @@ const Clientes = (() => {
       .filter(p => p.cliente.toLowerCase() === c.nome.toLowerCase())
       .sort((a, b) => (b.dtCriado || '').localeCompare(a.dtCriado || ''));
 
-    const total    = pedidos.reduce((s, p) => s + (p.total || 0), 0);
-    const isAdmin  = Auth.isAdmin();
+    const total = pedidos.reduce((s, p) => s + (p.total || 0), 0);
 
     const hist = pedidos.slice(0, 20).map(p => `
       <div class="order-mini" onclick="App.closeModal('modal-client-detail'); Pedidos.openDetail('${p.id}')">
@@ -91,15 +77,15 @@ const Clientes = (() => {
         <div style="font-size:0.8rem;opacity:0.75;margin-top:4px;">
           ${c.telefone || ''} ${c.email ? '• ' + c.email : ''}
         </div>
+        ${c.endereco ? `<div style="font-size:0.78rem;opacity:0.75;margin-top:6px;">📍 ${c.endereco}</div>` : ''}
         <div class="fechamento-total">${App.fmtMoeda(total)}</div>
         <div style="font-size:0.72rem;opacity:0.7;">total em ${pedidos.length} pedido(s)</div>
       </div>
 
-      ${isAdmin ? `
-        <div class="btn-group" style="margin-bottom:10px;">
-          <button class="btn btn-outline btn-sm" style="flex:1;" onclick="Clientes.openEdit('${id}')">✏️ Editar</button>
-          <button class="btn btn-accent btn-sm" style="flex:1;" onclick="Clientes.fechamentoMensal('${id}')">📄 Fechamento</button>
-        </div>` : ''}
+      <div class="btn-group" style="margin-bottom:10px;">
+        <button class="btn btn-outline btn-sm" style="flex:1;" onclick="Clientes.openEdit('${id}')">✏️ Editar</button>
+        <button class="btn btn-accent btn-sm" style="flex:1;" onclick="Clientes.fechamentoMensal('${id}')">📄 Fechamento</button>
+      </div>
 
       <div style="font-weight:800;font-size:0.85rem;color:var(--primary);margin-bottom:8px;">Histórico de Pedidos</div>
       ${hist || '<div class="empty-state"><p>Nenhum pedido</p></div>'}
@@ -111,12 +97,11 @@ const Clientes = (() => {
   }
 
   // ── Novo / Editar ──────────────────────────────────────────
-
   function openNew() {
     _editingId   = null;
     _currentTipo = 'avulso';
     document.getElementById('modal-client-title').textContent = '👤 Novo Cliente';
-    ['c-nome', 'c-tel', 'c-email'].forEach(id => {
+    ['c-nome', 'c-tel', 'c-email', 'c-endereco'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.querySelectorAll('#ctipo-group .toggle-btn').forEach(b => {
@@ -133,9 +118,10 @@ const Clientes = (() => {
     _currentTipo = c.tipo || 'avulso';
 
     document.getElementById('modal-client-title').textContent = '✏️ Editar Cliente';
-    document.getElementById('c-nome').value  = c.nome;
-    document.getElementById('c-tel').value   = c.telefone || '';
-    document.getElementById('c-email').value = c.email || '';
+    document.getElementById('c-nome').value     = c.nome;
+    document.getElementById('c-tel').value      = c.telefone || '';
+    document.getElementById('c-email').value    = c.email || '';
+    document.getElementById('c-endereco').value = c.endereco || '';
 
     document.querySelectorAll('#ctipo-group .toggle-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.ctipo === _currentTipo);
@@ -161,6 +147,7 @@ const Clientes = (() => {
       nome,
       telefone:   document.getElementById('c-tel').value,
       email:      document.getElementById('c-email').value,
+      endereco:   document.getElementById('c-endereco').value,
       tipo:       _currentTipo,
       dtCadastro: _editingId
         ? (clientes.find(x => x.id === _editingId)?.dtCadastro || App.today())
@@ -181,36 +168,36 @@ const Clientes = (() => {
     App.toast('✅ Cliente salvo!');
   }
 
-  // Salva automaticamente quando um pedido é criado para um cliente novo
-  function autoSave(nome, telefone, tipo) {
+  function autoSave(nome, telefone, endereco, tipo) {
     const clientes = Storage.getClientes();
     const existe = clientes.find(c => c.nome.toLowerCase() === nome.toLowerCase());
+
     if (!existe) {
       clientes.push({
         id:         App.uid(),
         nome,
         telefone:   telefone || '',
         email:      '',
+        endereco:   endereco || '',
         tipo:       tipo === 'fidelizado' ? 'fidelizado' : 'avulso',
         dtCadastro: App.today(),
       });
       Storage.saveClientes(clientes);
       populateDatalist();
+    } else if (endereco && !existe.endereco) {
+      // Atualiza endereço se não tinha
+      existe.endereco = endereco;
+      Storage.saveClientes(clientes);
     }
   }
-
-  // ── Datalist para autocomplete ─────────────────────────────
 
   function populateDatalist() {
     const dl = document.getElementById('clientes-datalist');
     if (!dl) return;
-    dl.innerHTML = Storage.getClientes()
-      .map(c => `<option value="${c.nome}">`)
-      .join('');
+    dl.innerHTML = Storage.getClientes().map(c => `<option value="${c.nome}">`).join('');
   }
 
   // ── Fechamento Mensal ──────────────────────────────────────
-
   function fechamentoMensal(clienteId) {
     const c = Storage.getClientes().find(x => x.id === clienteId);
     if (!c) return;
@@ -239,8 +226,8 @@ const Clientes = (() => {
       </tr>`).join('');
 
     document.getElementById('print-area').innerHTML = `
-      <div class="print-page">
-        <div class="print-header">
+      <div class="print-page-fechamento">
+        <div class="print-header-fechamento">
           <div>
             <div class="print-logo-name">🍞 Pão de Mel</div>
             <div class="print-logo-sub">Padaria • 25 Anos de Tradição</div>
@@ -251,21 +238,16 @@ const Clientes = (() => {
           </div>
         </div>
 
-        <div class="print-client-block">
+        <div class="print-client-block-fechamento">
           <div class="print-client-label">
             ${c.tipo === 'fidelizado' ? '⭐ Cliente Fidelizado' : 'Cliente'}
           </div>
-          <div class="print-client-name">${c.nome}</div>
+          <div class="print-client-name-fechamento">${c.nome}</div>
           <div class="print-client-sub">${c.telefone || ''}</div>
         </div>
 
         <table class="print-table">
-          <tr>
-            <th>Data</th>
-            <th>Tipo</th>
-            <th>Itens</th>
-            <th>Total</th>
-          </tr>
+          <tr><th>Data</th><th>Tipo</th><th>Itens</th><th>Total</th></tr>
           ${rows}
           <tr class="total-row">
             <td colspan="3" style="text-align:right;">TOTAL DO MÊS</td>
@@ -286,18 +268,9 @@ const Clientes = (() => {
     }, 300);
   }
 
-  // ── Exposição pública ──────────────────────────────────────
-
   return {
-    render,
-    openDetail,
-    openNew,
-    openEdit,
-    setTipo,
-    save,
-    autoSave,
-    populateDatalist,
-    fechamentoMensal,
+    render, openDetail, openNew, openEdit, setTipo, save, autoSave,
+    populateDatalist, fechamentoMensal,
   };
 
 })();

@@ -1,206 +1,354 @@
 /* =============================================
-   PRINT.CSS — Comanda A4 para impressão
-   Padaria Pão de Mel
+   PRINT.CSS — Padaria Pão de Mel
+   Comanda em formato MEIA FOLHA A4
+   A4 paisagem com 2 comandas idênticas lado a lado
    ============================================= */
 
 #print-area { display: none; }
 
 @media print {
-  /* Esconde tudo exceto a área de impressão */
+  /* Reset para impressão */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
   body > *:not(#print-area) { display: none !important; }
 
   #print-area {
     display: block !important;
     font-family: 'Nunito', sans-serif;
-  }
-
-  .print-page {
-    width: 210mm;
-    min-height: 297mm;
-    padding: 16mm;
-    color: #000;
-    font-size: 11pt;
     background: white;
   }
 
-  /* ── Cabeçalho ── */
-  .print-header {
+  /* Folha A4 paisagem com 2 comandas lado a lado */
+  .print-sheet {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6mm;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* === COMANDA INDIVIDUAL (meia folha A4) === */
+  .comanda {
+    border: none;
+    padding: 8mm;
+    color: #000;
+    font-size: 9.5pt;
+    line-height: 1.35;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TOPO COM LOGO */
+  .comanda-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #733425;
+    padding-bottom: 5px;
+    margin-bottom: 8px;
+  }
+  .comanda-logo {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border-bottom: 3px solid #733425;
-    padding-bottom: 12px;
-    margin-bottom: 16px;
+    gap: 6px;
   }
-  .print-logo-name {
+  .logo-icon { font-size: 16pt; }
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 14pt;
+    color: #733425;
+  }
+  .comanda-tipo {
+    background: #733425;
+    color: white;
+    font-weight: 900;
+    font-size: 8.5pt;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* === CLIENTE EM DESTAQUE (GIGANTE, PRETO) === */
+  .comanda-cliente-block {
+    background: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .cliente-label {
+    font-size: 7pt;
+    font-weight: 800;
+    color: #666;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .cliente-name {
+    font-family: 'Playfair Display', serif;
     font-size: 22pt;
     font-weight: 900;
+    color: #000;
+    line-height: 1.05;
+    word-break: break-word;
+  }
+  .cliente-tel {
+    font-size: 9pt;
+    color: #333;
+    font-weight: 700;
+    margin-top: 3px;
+  }
+
+  /* === ENTREGA EM DESTAQUE === */
+  .entrega-destaque {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 5px;
+    margin-bottom: 7px;
+  }
+  .entrega-box {
+    border: 1.5px solid #1c0f09;
+    border-radius: 5px;
+    padding: 5px 7px;
+    text-align: center;
+  }
+  .entrega-box.entrega-main {
+    background: #1c0f09;
+    color: white;
+    border-color: #1c0f09;
+  }
+  .entrega-label {
+    font-size: 6.5pt;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 2px;
+  }
+  .entrega-data {
+    font-size: 14pt;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  .entrega-data-sm {
+    font-size: 10pt;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .entrega-hora {
+    font-size: 10pt;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+
+  /* === FLAGS === */
+  .flags-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 7px;
+  }
+  .flag {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 7.5pt;
+    font-weight: 800;
+  }
+  .flag-yes  { background: #d1fae5; color: #065f46; }
+  .flag-no   { background: #e5e7eb; color: #4b5563; }
+  .flag-warn { background: #fee2e2; color: #991b1b; }
+  .flag-info { background: #dbeafe; color: #1e40af; }
+
+  /* === BLOCOS GENÉRICOS === */
+  .block-label {
+    font-size: 7.5pt;
+    font-weight: 900;
     color: #733425;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .block-content {
+    font-size: 9.5pt;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .endereco-block, .desc-block, .obs-block {
+    border-left: 3px solid #f8822c;
+    padding: 5px 8px;
+    margin-bottom: 7px;
+    background: #ffffff;
+  }
+
+  /* === TABELA DE ITENS === */
+  .itens-wrapper {
+    margin-bottom: 7px;
+    flex: 1;
+  }
+  .itens-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin-top: 3px;
+  }
+  .itens-table thead th {
+    background: #733425;
+    color: white;
+    padding: 4px 6px;
+    text-align: left;
+    font-size: 8pt;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .itens-table tbody td {
+    padding: 5px 6px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+  }
+  .itens-table tbody tr:nth-child(even) td {
+    background: #ffffff;
+  }
+  .col-num   { width: 22px; text-align: center; font-weight: 800; color: #733425; }
+  .col-item  { font-weight: 700; }
+  .col-qtd   { width: 50px; text-align: center; font-weight: 900; font-size: 11pt; }
+  .col-unid  { width: 50px; text-align: center; font-weight: 700; }
+
+  .item-name {
+    font-weight: 800;
+    color: #000;
+    font-size: 10pt;
+  }
+  .item-obs {
+    font-size: 8pt;
+    color: #666;
+    font-style: italic;
+    margin-top: 1px;
+  }
+
+  /* === ASSINATURAS === */
+  .sign-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10mm;
+    margin-top: auto;
+    padding-top: 10px;
+  }
+  .sign-box {
+    border-top: 1.5px solid #1c0f09;
+    padding-top: 3px;
+  }
+  .sign-label {
+    font-size: 7pt;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  /* === RODAPÉ === */
+  .comanda-footer {
+    text-align: center;
+    font-size: 6.5pt;
+    color: #888;
+    margin-top: 5px;
+    padding-top: 4px;
+    border-top: 1px dashed #ccc;
+  }
+
+  /* === FECHAMENTO MENSAL (mantém em A4 retrato) === */
+  @page :first { size: A4 portrait; }
+
+  .print-page-fechamento {
+    width: 100%;
+    padding: 15mm;
+    color: #000;
+    font-size: 10.5pt;
+  }
+  .print-header-fechamento {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #733425;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .print-logo-name {
     font-family: 'Playfair Display', serif;
+    font-size: 20pt;
+    font-weight: 900;
+    color: #733425;
   }
   .print-logo-sub {
     font-size: 8pt;
     color: #9a7060;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-top: 2px;
   }
   .print-header-right {
     text-align: right;
-    font-size: 8pt;
-    color: #9a7060;
-    line-height: 1.6;
+    font-size: 9pt;
+    color: #555;
   }
-
-  /* ── Bloco do cliente (destaque) ── */
-  .print-client-block {
+  .print-client-block-fechamento {
     background: #733425;
     color: white;
     padding: 14px 18px;
-    border-radius: 8px;
-    margin-bottom: 16px;
+    border-radius: 6px;
+    margin-bottom: 14px;
   }
   .print-client-label {
-    font-size: 7.5pt;
+    font-size: 8pt;
     opacity: 0.75;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    margin-bottom: 4px;
   }
-  .print-client-name {
+  .print-client-name-fechamento {
+    font-family: 'Playfair Display', serif;
     font-size: 22pt;
     font-weight: 900;
-    line-height: 1.1;
-    font-family: 'Playfair Display', serif;
   }
   .print-client-sub {
     font-size: 9pt;
-    opacity: 0.75;
-    margin-top: 4px;
+    opacity: 0.8;
+    margin-top: 3px;
   }
-
-  /* ── Grid de informações ── */
-  .print-info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .print-info-box {
-    border: 1.5px solid #e8d5c4;
-    border-radius: 8px;
-    padding: 10px;
-  }
-  .print-info-label {
-    font-size: 7.5pt;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #9a7060;
-    margin-bottom: 3px;
-  }
-  .print-info-val {
-    font-size: 11pt;
-    font-weight: 700;
-  }
-
-  /* ── Flags (nota, compra) ── */
-  .print-flags {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .print-flag {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-size: 8.5pt;
-    font-weight: 800;
-  }
-  .print-flag.yes  { background: #d1fae5; color: #065f46; }
-  .print-flag.no   { background: #f3f4f6; color: #6b7280; }
-  .print-flag.warn { background: #fee2e2; color: #991b1b; }
-
-  /* ── Tabela de itens ── */
   .print-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 14px;
   }
   .print-table th {
     background: #733425;
     color: white;
-    padding: 8px 10px;
-    font-size: 9pt;
+    padding: 7px 10px;
     text-align: left;
-    letter-spacing: 0.04em;
+    font-size: 9pt;
   }
   .print-table td {
-    padding: 7px 10px;
+    padding: 6px 10px;
     border-bottom: 1px solid #e8d5c4;
     font-size: 10pt;
   }
-  .print-table tr:nth-child(even) td { background: #fdf8f3; }
+  .print-table tr:nth-child(even) td { background: #ffffff; }
   .print-table .total-row td {
     font-weight: 800;
-    background: #fde8d0;
+    background: #ffffff;
     font-size: 11pt;
   }
-
-  /* ── Descartáveis ── */
-  .print-desc-section {
-    border: 2px solid #f8822c;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 14px;
-  }
-  .print-desc-title {
-    color: #f8822c;
-    font-weight: 800;
-    font-size: 10pt;
-    margin-bottom: 8px;
-  }
-  .print-desc-items {
-    font-size: 10pt;
-    line-height: 1.8;
-  }
-
-  /* ── Observações ── */
-  .print-obs {
-    border: 1.5px solid #e8d5c4;
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 14px;
-    min-height: 50px;
-    font-size: 10pt;
-  }
-
-  /* ── Assinaturas ── */
-  .print-sign {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 24px;
-  }
-  .print-sign-box {
-    border-top: 2px solid #1c0f09;
-    padding-top: 8px;
-  }
-  .print-sign-label {
-    font-size: 8pt;
-    color: #9a7060;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  /* ── Rodapé ── */
   .print-footer {
     text-align: center;
     font-size: 8pt;
-    color: #9a7060;
-    margin-top: 24px;
+    color: #888;
+    margin-top: 20px;
     border-top: 1px solid #e8d5c4;
-    padding-top: 10px;
+    padding-top: 8px;
   }
 }

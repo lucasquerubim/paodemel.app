@@ -1,138 +1,31 @@
 /**
- * print.js — Impressão de Comandas e Notas
+ * print.js — Impressão de Comandas
  * Padaria Pão de Mel
+ *
+ * NOVA VERSÃO:
+ * - Formato A4 paisagem
+ * - 2 comandas idênticas lado a lado (= meia folha A4 cada)
+ * - Cliente em destaque GIGANTE preto
+ * - Sem cortes laterais
+ * - Itens grandes e legíveis
  */
 
 const Print = (() => {
-
-  // ── Comanda A4 de produção ─────────────────────────────────
 
   function comanda(id) {
     const p = Storage.getPedidos().find(x => x.id === id);
     if (!p) return;
 
-    const itensRows = (p.itens || []).map(it => `
-      <tr>
-        <td>${it.nome}</td>
-        <td>${it.qtd}</td>
-        <td>${it.unid || '—'}</td>
-        <td>${App.fmtMoeda(it.valorUnit)}</td>
-        <td style="font-weight:800;">${App.fmtMoeda(it.total)}</td>
-      </tr>`).join('');
+    const html = _buildComanda(p);
 
-    const descAtivos = (p.descartaveis || []).filter(d => d.qtd > 0);
-    const descHtml = descAtivos.length
-      ? `<div class="print-desc-section">
-           <div class="print-desc-title">🥤 Descartáveis</div>
-           <div class="print-desc-items">
-             ${descAtivos.map(d => `${d.label}: <strong>${d.qtd}</strong>`).join(' &nbsp;|&nbsp; ')}
-           </div>
-         </div>`
-      : '';
-
-    const obsHtml = p.obs
-      ? `<div class="print-obs">
-           <strong>📝 Observações:</strong><br>${p.obs}
-         </div>`
-      : '';
-
-    const agora = new Date();
-
+    // Duas vias lado a lado para corte (cada uma = meia folha A4)
     document.getElementById('print-area').innerHTML = `
-      <div class="print-page">
-
-        <!-- Cabeçalho -->
-        <div class="print-header">
-          <div>
-            <div class="print-logo-name">🍞 Pão de Mel</div>
-            <div class="print-logo-sub">Padaria • 25 Anos de Tradição</div>
-          </div>
-          <div class="print-header-right">
-            COMANDA DE PRODUÇÃO<br>
-            ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}<br>
-            Criado por: <strong>${p.criadoPor || '—'}</strong>
-          </div>
-        </div>
-
-        <!-- Cliente em destaque -->
-        <div class="print-client-block">
-          <div class="print-client-label">${App.TIPO_LABELS[p.tipo] || p.tipo}</div>
-          <div class="print-client-name">${p.cliente}</div>
-          <div class="print-client-sub">${p.telefone || ''}</div>
-        </div>
-
-        <!-- Grid de informações -->
-        <div class="print-info-grid">
-          <div class="print-info-box">
-            <div class="print-info-label">📦 Data de Produção</div>
-            <div class="print-info-val">${App.fmtDateTimeBR(p.dtProd, p.hrProd)}</div>
-          </div>
-          <div class="print-info-box">
-            <div class="print-info-label">🚚 Data de Entrega</div>
-            <div class="print-info-val">${App.fmtDateTimeBR(p.dtEntrega, p.hrEntrega)}</div>
-          </div>
-          <div class="print-info-box">
-            <div class="print-info-label">👨‍🍳 Resp. Produção</div>
-            <div class="print-info-val">${p.respProd || '—'}</div>
-          </div>
-          <div class="print-info-box">
-            <div class="print-info-label">🚚 Entregador</div>
-            <div class="print-info-val">${p.entregador || '—'}</div>
-          </div>
-        </div>
-
-        <!-- Flags -->
-        <div class="print-flags">
-          <span class="print-flag ${p.nota ? 'yes' : 'no'}">
-            📄 Nota Fiscal: ${p.nota ? 'SIM' : 'NÃO'}
-          </span>
-          <span class="print-flag ${p.compra ? 'warn' : 'no'}">
-            🛒 Compra Insumo: ${p.compra ? (p.compraDetail || 'SIM') : 'NÃO'}
-          </span>
-        </div>
-
-        <!-- Tabela de itens -->
-        <table class="print-table">
-          <tr>
-            <th>Item</th>
-            <th>Qtd</th>
-            <th>Unid.</th>
-            <th>Vl. Unit.</th>
-            <th>Total</th>
-          </tr>
-          ${itensRows}
-          <tr class="total-row">
-            <td colspan="4" style="text-align:right;">TOTAL DO PEDIDO</td>
-            <td>${App.fmtMoeda(p.total)}</td>
-          </tr>
-        </table>
-
-        <!-- Descartáveis -->
-        ${descHtml}
-
-        <!-- Observações -->
-        ${obsHtml}
-
-        <!-- Assinaturas -->
-        <div class="print-sign">
-          <div class="print-sign-box">
-            <div class="print-sign-label">Responsável pela Produção</div>
-          </div>
-          <div class="print-sign-box">
-            <div class="print-sign-label">Conferência Final</div>
-          </div>
-        </div>
-
-        <!-- Rodapé -->
-        <div class="print-footer">
-          Padaria Pão de Mel • 25 Anos de Tradição •
-          Gerado em ${agora.toLocaleDateString('pt-BR')}
-        </div>
-
+      <div class="print-sheet">
+        ${html}
+        ${html}
       </div>
     `;
 
-    // Fecha o modal e imprime
     App.closeModal('modal-detail');
     document.getElementById('print-area').style.display = 'block';
 
@@ -142,7 +35,136 @@ const Print = (() => {
     }, 300);
   }
 
-  // ── Exposição pública ──────────────────────────────────────
+  function _buildComanda(p) {
+
+    // === Linhas dos itens ===
+    const itensRows = (p.itens || []).map((it, i) => `
+      <tr>
+        <td class="col-num">${i + 1}</td>
+        <td class="col-item">
+          <div class="item-name">${it.nome}</div>
+          ${it.obs ? `<div class="item-obs">${it.obs}</div>` : ''}
+        </td>
+        <td class="col-qtd">${it.qtd}</td>
+        <td class="col-unid">${it.unid || '—'}</td>
+      </tr>`).join('');
+
+    // === Descartáveis ===
+    const descAtivos = (p.descartaveis || []).filter(d => d.qtd > 0);
+    let descText = '';
+
+    if (descAtivos.length) {
+      descText = descAtivos.map(d => `${d.label.replace(/[^\w\s\u00C0-\u017F]/g, '').trim()}: ${d.qtd}`).join(' • ');
+    }
+    if (p.descOutros) {
+      descText += (descText ? ' • ' : '') + 'Outros: ' + p.descOutros;
+    }
+
+    const descBlock = descText ? `
+      <div class="desc-block">
+        <div class="block-label">🥤 DESCARTÁVEIS</div>
+        <div class="block-content">${descText}</div>
+      </div>` : '';
+
+    const obsBlock = p.obs ? `
+      <div class="obs-block">
+        <div class="block-label">📝 OBSERVAÇÕES</div>
+        <div class="block-content">${p.obs}</div>
+      </div>` : '';
+
+    const enderecoBlock = (p.formaEntrega === 'entrega' && p.endereco) ? `
+      <div class="endereco-block">
+        <div class="block-label">📍 ENDEREÇO DE ENTREGA</div>
+        <div class="block-content">${p.endereco}</div>
+      </div>` : '';
+
+    const flagsRow = `
+      <div class="flags-row">
+        <span class="flag ${p.nota ? 'flag-yes' : 'flag-no'}">
+          ${p.nota ? '✓' : '✗'} Nota Fiscal
+        </span>
+        <span class="flag ${p.compra ? 'flag-warn' : 'flag-no'}">
+          ${p.compra ? '!' : '✗'} Comprar Insumo${p.compra && p.compraDetail ? ': ' + p.compraDetail : ''}
+        </span>
+        <span class="flag flag-info">
+          ${p.formaEntrega === 'entrega' ? '🚚 Entregar' : '🏪 Retirada'}
+        </span>
+      </div>`;
+
+    return `
+      <div class="comanda">
+
+        <!-- TOPO COM LOGO E TIPO -->
+        <div class="comanda-top">
+          <div class="comanda-logo">
+            <span class="logo-icon">🍞</span>
+            <span class="logo-text">Pão de Mel</span>
+          </div>
+          <div class="comanda-tipo">${(App.TIPO_LABELS[p.tipo] || p.tipo).toUpperCase()}</div>
+        </div>
+
+        <!-- NOME DO CLIENTE GIGANTE EM PRETO -->
+        <div class="comanda-cliente-block">
+          <div class="cliente-label">CLIENTE</div>
+          <div class="cliente-name">${p.cliente}</div>
+          ${p.telefone ? `<div class="cliente-tel">📞 ${p.telefone}</div>` : ''}
+        </div>
+
+        <!-- ENTREGA EM DESTAQUE -->
+        <div class="entrega-destaque">
+          <div class="entrega-box entrega-main">
+            <div class="entrega-label">🚚 ENTREGA</div>
+            <div class="entrega-data">${App.fmtDateBR(p.dtEntrega)}</div>
+            ${p.hrEntrega ? `<div class="entrega-hora">às ${p.hrEntrega}</div>` : ''}
+          </div>
+          <div class="entrega-box">
+            <div class="entrega-label">📦 PRODUÇÃO</div>
+            <div class="entrega-data-sm">${App.fmtDateBR(p.dtProd)}</div>
+            ${p.hrProd ? `<div class="entrega-hora">às ${p.hrProd}</div>` : ''}
+          </div>
+          <div class="entrega-box">
+            <div class="entrega-label">${p.formaEntrega === 'entrega' ? '🚚 ENTREGADOR' : '👨‍🍳 PRODUÇÃO'}</div>
+            <div class="entrega-data-sm">${p.formaEntrega === 'entrega' ? (p.entregador || '—') : (p.respProd || '—')}</div>
+          </div>
+        </div>
+
+        ${flagsRow}
+
+        ${enderecoBlock}
+
+        <!-- TABELA DE ITENS -->
+        <div class="itens-wrapper">
+          <div class="block-label">🛍️ ITENS DO PEDIDO</div>
+          <table class="itens-table">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th class="col-item">Item</th>
+                <th class="col-qtd">Qtd</th>
+                <th class="col-unid">Unid.</th>
+              </tr>
+            </thead>
+            <tbody>${itensRows}</tbody>
+          </table>
+        </div>
+
+        ${descBlock}
+        ${obsBlock}
+
+        <!-- ASSINATURAS -->
+        <div class="sign-row">
+          <div class="sign-box"><div class="sign-label">Responsável Produção</div></div>
+          <div class="sign-box"><div class="sign-label">Conferência</div></div>
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="comanda-footer">
+          Padaria Pão de Mel • Gerado em ${new Date().toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })}
+        </div>
+
+      </div>
+    `;
+  }
 
   return { comanda };
 
